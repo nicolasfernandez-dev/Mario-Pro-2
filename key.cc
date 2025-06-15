@@ -53,7 +53,7 @@ const vector<vector<int>> Key::key_sprite_black_ = {
 };
 
 
-void Key::paint(pro2::Window& window) const {                   // pinta la moneda a la finestra
+void Key::paint(pro2::Window& window) const {
         const Pt top_left = {pos.x - 6, pos.y - 15};
         paint_sprite(window, top_left, key_sprite_, false);
     }

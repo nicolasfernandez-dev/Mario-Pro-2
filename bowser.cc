@@ -104,3 +104,103 @@ const std::vector<std::vector<int>> Bowser::bowser_sprite_ = {
     {_, _, r, r, r, r, r},
     {_, _, _, _, r, r},
   };
+  
+  // Constructor
+Bowser::Bowser(pro2::Pt pos)
+    : pos_(pos) {}
+
+// dibuixa a Bowswer i a la seva barra de vida a la finestra
+void Bowser::paint(pro2::Window& window) const {
+    bool pintar = true;
+    if (parpadeo_frames_ > 0) {
+        pintar = (parpadeo_frames_ % 2 == 0);
+    }
+
+    if (alive_ && pintar) {
+        paint_sprite(window, pos_, bowser_sprite_, false);
+        int bar_width = 40;
+        int bar_height = 5;
+        int x = pos_.x;
+        int y = pos_.y - 10;
+        int vidas_actuales = std::max(vidas_, 0);
+        int vidas_maximas = vidas_max_;
+        int filled = (bar_width * vidas_actuales) / vidas_maximas;
+        paint_rect(window, x, y, x + bar_width, y + bar_height, 0xAA2222);
+        paint_rect(window, x, y, x + filled, y + bar_height, 0x22CC22);
+        for (int i = 0; i < bar_width; ++i) {
+            window.set_pixel({x + i, y}, pro2::black);
+            window.set_pixel({x + i, y + bar_height - 1}, pro2::black);
+        }
+        for (int i = 0; i < bar_height; ++i) {
+            window.set_pixel({x, y + i}, pro2::black);
+            window.set_pixel({x + bar_width - 1, y + i}, pro2::black);
+        }
+        for (const auto& f : fireballs_) f.paint(window);
+    }
+    else if (frame_bowser_muerto_ != -1) {
+        int frames = window.frame_count() - frame_bowser_muerto_;
+        if (frames < 96) {
+            paint_sprite(window, pos_, bowser_dead, false);
+        }
+    }
+}
+
+//  actualitza l'estat de Bowser i les seves boles de foc
+void Bowser::update(const pro2::Pt& mario_pos) {
+    if (!alive_) return;
+    if (parpadeo_frames_ > 0) parpadeo_frames_--;
+    if (fireball_cooldown_ > 0) fireball_cooldown_--;
+    else {
+        int distancia = std::abs(mario_pos.x - pos_.x);
+        if (distancia < 300) {
+            lanzar_bola(mario_pos);
+            fireball_cooldown_ = 60;
+        }
+    }
+    for (auto& f : fireballs_) {
+        if (f.active) f.update();
+    }
+}
+
+// llença una bola de foc cap a la posició de Mario
+void Bowser::lanzar_bola(const pro2::Pt& mario_pos) {
+    if (!alive_) return;
+    pro2::Pt dir = {mario_pos.x - pos_.x, mario_pos.y - (pos_.y + 7)};
+    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+    if (len == 0) len = 1;
+    pro2::Pt speed = { (int)(dir.x / len * 3), (int)(dir.y / len * 2) };
+    fireballs_.emplace_back(pro2::Pt{pos_.x + 20, pos_.y + 30}, speed);
+}
+
+// Bowser perd vida i pot morir si es queda sense vides
+void Bowser::recibir_danio(pro2::Window& window) {
+    if (!alive_) return;
+    vidas_--;
+    if (vidas_ <= 0) {
+        alive_ = false;
+        frame_bowser_muerto_ = window.frame_count();
+    }
+    parpadeo_frames_ = PARPADEOS_MAX_;
+    parpadeos_totales_ = 0;
+}
+
+// Retorna el numero màxim de vides de Bowser
+int Bowser::vidas_max() const { return vidas_max_; }
+
+// Retorna el numero actual de vides de Bowser
+int Bowser::vidas() const { return vidas_; }
+
+// Indica si Bowser està viu
+bool Bowser::is_alive() const { return alive_; }
+
+// Retorna la posició actual de Bowser
+pro2::Pt Bowser::pos() const { return pos_; }
+
+// Retorna el rectngle que ocupa Bowser (per col·lisions)
+pro2::Rect Bowser::get_rect() const { return {pos_.x, pos_.y, pos_.x + 40, pos_.y + 40}; }
+
+// Retorna les boles de foc actives de Bowser
+std::vector<Fireball>& Bowser::fireballs() { return fireballs_; }
+
+// Mata a Bowser instantàniament
+void Bowser::kill() { alive_ = false; }

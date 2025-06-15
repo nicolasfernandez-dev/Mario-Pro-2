@@ -91,3 +91,27 @@ const std::vector<std::vector<int>> Peach::peach_feliz_sprite_ = {
     {_, _, _, _, _, 0x000000, 0xe42f2f, 0xff708a, 0xff708a, 0x000000, 0xff708a, 0xff708a, 0xff708a, 0xff708a, 0xff708a, 0x000000, 0x000000, 0xff708a, 0xff708a, 0xff708a, 0xe42f2f, 0x000000, _, _, _, _, _, _},
     {_, _, _, _, _, _, 0x000000, 0x000000, 0x000000, _, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, _, _, 0x000000, 0x000000, 0x000000, 0x000000, _, _, _, _, _, _, _},
 };
+
+Peach::Peach(pro2::Pt pos)
+    : pos_(pos) {}
+
+void Peach::set_estado(Estado e) {
+    estado_ = e;
+}
+
+Peach::Estado Peach::estado() const {
+    return estado_;
+}
+
+pro2::Pt Peach::pos() const {
+    return pos_;
+}
+
+void Peach::paint(pro2::Window& window) const {
+    if (estado_ == OCULTA) return;
+    if (estado_ == LLORANDO) {
+        paint_sprite(window, {pos_.x - 8, pos_.y - 32}, peach_llorando_sprite_, false);
+    } else if (estado_ == FELIZ) {
+        paint_sprite(window, {pos_.x - 8, pos_.y - 32}, peach_feliz_sprite_, false);
+    }
+}

@@ -6,125 +6,137 @@
 #include "utils.hh"
 #include "geometry.hh"
 
+/**
+ * @struct Fireball
+ * @brief Representa una bola de foc llançada per Bowser.
+ */
 struct Fireball {
-    pro2::Pt pos;
-    pro2::Pt speed;
-    bool active = true;
-    int frame = 0;
-    int base_y = 0;
-    static const std::vector<std::vector<int>> fireball_sprite_;
+    pro2::Pt pos; ///< Posició actual de la bola de foc.
+    pro2::Pt speed; ///< Velocitat de la bola de foc.
+    bool active = true; ///< Indica si la bola de foc està activa.
+    int frame = 0; ///< Frame actual de l'animació.
+    int base_y = 0; ///< Alçada base per al moviment sinusoidal.
+    static const std::vector<std::vector<int>> fireball_sprite_; ///< Sprite de la bola de foc.
 
+    /**
+     * @brief Constructor de Fireball.
+     * @param p Posició inicial.
+     * @param s Velocitat inicial.
+     */
     Fireball(pro2::Pt p, pro2::Pt s)
         : pos(p), speed(s), base_y(p.y) {}
 
+    /**
+     * @brief Actualitza la posició i animació de la bola de foc.
+     */
     void update() {
         frame++;
         pos.x += speed.x;
         pos.y = base_y + int(10 * std::sin(frame / 8.0)) + speed.y;
     }
+
+    /**
+     * @brief Dibuixa la bola de foc a la finestra.
+     * @param window Finestra on es dibuixa.
+     */
     void paint(pro2::Window& window) const {
         if (active)
             paint_sprite(window, {pos.x-4, pos.y-4}, fireball_sprite_, false);
     }
 };
 
+/**
+ * @class Bowser
+ * @brief Representa el cap Bowser al joc.
+ */
 class Bowser {
 private:
-    pro2::Pt pos_;
-    bool alive_ = true;
-    int frame_offset_ = 0;
-    int vidas_ = 3;
-    int vidas_max_ = 3;
-    std::vector<Fireball> fireballs_;
-    int fireball_cooldown_ = 0;
-    static const std::vector<std::vector<int>> bowser_sprite_;
-    static const std::vector<std::vector<int>> bowser_dead;
+    pro2::Pt pos_; ///< Posició de Bowser.
+    bool alive_ = true; ///< Indica si Bowser està viu.
+    int frame_offset_ = 0; ///< Offset d'animació.
+    int vidas_ = 3; ///< Vides actuals de Bowser.
+    int vidas_max_ = 3; ///< Vides màximes de Bowser.
+    std::vector<Fireball> fireballs_; ///< Bolas de foc actives.
+    int fireball_cooldown_ = 0; ///< Cooldown per llançar boles de foc.
+    static const std::vector<std::vector<int>> bowser_sprite_; ///< Sprite de Bowser viu.
+    static const std::vector<std::vector<int>> bowser_dead; ///< Sprite de Bowser mort.
 
-    int parpadeo_frames_ = 0;
-    int parpadeos_totales_ = 0;
-    static constexpr int PARPADEOS_MAX_ = 8;
-    int frame_bowser_muerto_ = -1;
+    int parpadeo_frames_ = 0; ///< Frames de parpelleig després de rebre dany.
+    int parpadeos_totales_ = 0; ///< Total de parpelleigs realitzats.
+    static constexpr int PARPADEOS_MAX_ = 8; ///< Màxim de frames de parpelleig.
+    int frame_bowser_muerto_ = -1; ///< Frame en què Bowser ha mort.
+
 public:
-    Bowser(pro2::Pt pos) : pos_(pos) {}
+    /**
+     * @brief Constructor de Bowser.
+     * @param pos Posició inicial de Bowser.
+     */
+    Bowser(pro2::Pt pos);
 
-    void paint(pro2::Window& window) const {
-        bool pintar = true;
-        if(parpadeo_frames_ > 0){
-            pintar = (parpadeo_frames_ % 2 == 0);
-        }
+    /**
+     * @brief Dibuixa Bowser i la seva barra de vida a la finestra.
+     * @param window Finestra on es dibuixa.
+     */
+    void paint(pro2::Window& window) const;
 
-        if (alive_ and pintar) {
-        paint_sprite(window, pos_, bowser_sprite_, false);
-        int bar_width = 40;
-        int bar_height = 5;
-        int x = pos_.x;
-        int y = pos_.y - 10;
-        int vidas_actuales = std::max(vidas_, 0);
-        int vidas_maximas = vidas_max_;
-        int filled = (bar_width * vidas_actuales) / vidas_maximas;
-        paint_rect(window, x, y, x + bar_width, y + bar_height, 0xAA2222);
-        paint_rect(window, x, y, x + filled, y + bar_height, 0x22CC22);
-        for (int i = 0; i < bar_width; ++i) {
-            window.set_pixel({x + i, y}, pro2::black);
-            window.set_pixel({x + i, y + bar_height - 1}, pro2::black);
-        }
-        for (int i = 0; i < bar_height; ++i) {
-            window.set_pixel({x, y + i}, pro2::black);
-            window.set_pixel({x + bar_width - 1, y + i}, pro2::black);
-        }
-        for (const auto& f : fireballs_) f.paint(window);
-        }
-        else if (frame_bowser_muerto_ != -1) {
-            int frames = window.frame_count() - frame_bowser_muerto_;
-            if (frames < 96) {
-                paint_sprite(window, pos_, bowser_dead, false);
-            }
-        }
-    }
+    /**
+     * @brief Actualitza l'estat de Bowser i les seves boles de foc.
+     * @param mario_pos Posició actual de Mario.
+     */
+    void update(const pro2::Pt& mario_pos);
 
-    void update(const pro2::Pt& mario_pos) {
-        if (!alive_) return;
-        if(parpadeo_frames_ > 0) parpadeo_frames_--;
-        if (fireball_cooldown_ > 0) fireball_cooldown_--;
-        else {
-            int distancia = std::abs(mario_pos.x - pos_.x);
-            if (distancia < 300) {
-                lanzar_bola(mario_pos);
-                fireball_cooldown_ = 60;
-            }
-        }
-        for (auto& f : fireballs_) {
-            if (f.active) f.update();
-        }
-    }
+    /**
+     * @brief Llança una bola de foc cap a la posició de Mario.
+     * @param mario_pos Posició de Mario.
+     */
+    void lanzar_bola(const pro2::Pt& mario_pos);
 
-    void lanzar_bola(const pro2::Pt& mario_pos) {
-        if (!alive_) return;
-        pro2::Pt dir = {mario_pos.x - pos_.x, mario_pos.y - (pos_.y+7)};
-        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-        if (len == 0) len = 1;
-        pro2::Pt speed = { (int)(dir.x / len * 3), (int)(dir.y / len * 2) };
-        fireballs_.emplace_back(pro2::Pt{pos_.x + 20, pos_.y + 30}, speed);
-    }
+    /**
+     * @brief Bowser rep dany i pot morir si es queda sense vides.
+     * @param window Finestra per obtenir el frame actual.
+     */
+    void recibir_danio(pro2::Window& window);
 
-    void recibir_danio(pro2::Window& window) {
-        if (!alive_) return;
-        vidas_--;
-        if (vidas_ <= 0) {
-            alive_ = false;
-            frame_bowser_muerto_ = window.frame_count();
-        }
-        parpadeo_frames_ = PARPADEOS_MAX_;
-        parpadeos_totales_ = 0;
-    }
+    /**
+     * @brief Retorna el nombre màxim de vides de Bowser.
+     * @return Vides màximes.
+     */
+    int vidas_max() const;
 
-    int vidas_max() const { return vidas_max_; }
-    int vidas() const { return vidas_; }
-    bool is_alive() const { return alive_; }
-    pro2::Pt pos() const { return pos_; }
-    pro2::Rect get_rect() const { return {pos_.x, pos_.y, pos_.x + 40, pos_.y+40}; }
-    std::vector<Fireball>& fireballs() { return fireballs_; }
-    void kill() { alive_ = false; }
+    /**
+     * @brief Retorna el nombre actual de vides de Bowser.
+     * @return Vides actuals.
+     */
+    int vidas() const;
+
+    /**
+     * @brief Indica si Bowser està viu.
+     * @return true si està viu, false si està mort.
+     */
+    bool is_alive() const;
+
+    /**
+     * @brief Retorna la posició actual de Bowser.
+     * @return Posició de Bowser.
+     */
+    pro2::Pt pos() const;
+
+    /**
+     * @brief Retorna el rectangle que ocupa Bowser (per col·lisions).
+     * @return Rectangle de Bowser.
+     */
+    pro2::Rect get_rect() const;
+
+    /**
+     * @brief Retorna el vector de boles de foc actives.
+     * @return Referència al vector de boles de foc.
+     */
+    std::vector<Fireball>& fireballs();
+
+    /**
+     * @brief Mata Bowser instantàniament.
+     */
+    void kill();
 };
 
 #endif

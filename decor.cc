@@ -65,7 +65,16 @@ const vector<vector<int>> Decor::tuberia_ = {
     {_, _, n, v, v, v, v, v, v, v, v, v, v, v, v, v, v, n, _, _},
     {_, _, n, v, v, v, v, v, v, v, v, v, v, v, v, v, v, n, _, _},
     {_, _, n, v, v, v, v, v, v, v, v, v, v, v, v, v, v, n, _, _},
+    {_, _, n, v, v, v, v, v, v, v, v, v, v, v, v, v, v, n, _, _},
+    {_, _, n, v, v, v, v, v, v, v, v, v, v, v, v, v, v, n, _, _},
 };
+
+Decor::Decor(pro2::Pt pos, const std::vector<std::vector<int>>& sprite)
+    : pos_(pos), sprite_(sprite) {}
+
+void Decor::paint(pro2::Window& window) const {
+    paint_sprite(window, pos_, sprite_, false);
+}
 
 pro2::Rect Decor::get_rect() const {
     int width = sprite_.empty() ? 0 : sprite_[0].size();
@@ -73,6 +82,6 @@ pro2::Rect Decor::get_rect() const {
     return {pos_.x, pos_.y, pos_.x + width, pos_.y + height};
 }
 
-void Decor::paint(pro2::Window& window) const {
-    paint_sprite(window, pos_, sprite_, false);
+bool Decor::es_tuberia() const {
+    return &sprite_ == &tuberia_;
 }

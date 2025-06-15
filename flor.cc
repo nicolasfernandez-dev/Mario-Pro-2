@@ -9,6 +9,10 @@ const int n = pro2::black;
 const int v = 0x028a0f;
 const int c = 0xb0fc38;
 
+
+
+
+// Definició del sprite de la flor
 const std::vector<std::vector<int>> Flor::flor_sprite_ = {
     {_, _, _, _, n, n, n, n, n, n, n, n},
     {_, _, n, n, a, a, a, a, a, a, a, a, n, n},
@@ -28,7 +32,27 @@ const std::vector<std::vector<int>> Flor::flor_sprite_ = {
     {_, _, _, _, n, n, n, n, n, n, n, n}
 };
 
+// Constructor
+Flor::Flor(pro2::Pt pos)
+    : pos_(pos), recogida_(false) {}
+
+// Dibuixa la flor si no ha estat recollida
 void Flor::paint(pro2::Window& window) const {
     if (!recogida_)
         paint_sprite(window, {pos_.x - 2, pos_.y - 2}, flor_sprite_, false);
+}
+
+// Retorna la posició de la flor
+pro2::Pt Flor::pos() const {
+    return pos_;
+}
+
+// Indica si la flor ha estat recollida
+bool Flor::is_recogida() const {
+    return recogida_;
+}
+
+// Marca la flor com recollida
+void Flor::recoger() {
+    recogida_ = true;
 }

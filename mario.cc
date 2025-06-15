@@ -6,16 +6,16 @@ using namespace pro2;
 bool dead = false;
 
 const int _ = -1;
-const int r = pro2::red;  //rojo
-const int w = pro2::white; //blanco
-const int n = pro2::black;  //negro
-const int p = 0xFFC8C8; //rosa claro
-const int o = 0xFF8080; //rosa oscuro
-const int l = 0xFF0080; //rosa fuerte
-const int m = 0xB97A57; //marrón claro
-const int k = 0x6F4E37; //marrón oscuro
+const int r = pro2::red;  //vermell
+const int w = pro2::white; //blanc
+const int n = pro2::black;  //negre
+const int p = 0xFFC8C8; //rosa clar
+const int o = 0xFF8080; //rosa fosc
+const int l = 0xFF0080; //rosa fort
+const int m = 0xB97A57; //marró clar
+const int k = 0x6F4E37; //marró fosc
 const int b = 0xF8E3B7; //beige
-const int a = 0xFFD700; //amarillo
+const int a = 0xFFD700; //groc
 
 const int i = 0x00BFFF;
 const int f = 0x2f2c79;
@@ -125,8 +125,12 @@ const vector<vector<int>> Iceball::iceball_sprite_ = {
     {_, _, _, _, _, f, f, f, f, f, f},
 };
     
-
-
+/**
+ * @brief Dibuixa Mario a la finestra.
+ * @param window Finestra on es dibuixa.
+ * @param dead_sprite Si true, es dibuixa Mario mort.
+ * @param flor_recogida Si true, es dibuixa Mario amb el sprite de gel.
+ */
 void Mario::paint(pro2::Window& window, bool dead_sprite, bool flor_recogida) const {
     const Pt top_left = {pos_.x - 8, pos_.y - 26};
     if(dead_sprite){
@@ -140,6 +144,9 @@ void Mario::paint(pro2::Window& window, bool dead_sprite, bool flor_recogida) co
     }
 }
 
+/**
+ * @brief Aplica la física bàsica a Mario (gravetat, acceleració, moviment).
+ */
 void Mario::apply_physics_() {
     if (grounded_) {
         speed_.y = 0;
@@ -158,6 +165,9 @@ void Mario::apply_physics_() {
     pos_.y += speed_.y;
 }
 
+/**
+ * @brief Fa saltar Mario si està a terra.
+ */
 void Mario::jump() {
     if (grounded_) {
         accel_.y = -6;
@@ -166,30 +176,50 @@ void Mario::jump() {
     }
 }
 
+/**
+ * @brief Fa rebotar Mario cap amunt (després de matar un enemic).
+ */
 void Mario::bounce(){
     speed_.y = -8;
     grounded_ = false;
 }
 
+/**
+ * @brief Fa rebotar Mario cap avall (després de trencar un bloc).
+ */
 void Mario::bounce_down(){
     speed_.y = 0;
     grounded_ = false;
 }
 
+/**
+ * @brief Retorna si Mario està mort.
+ */
 bool Mario::is_dead()const{
-        return dead;
-    }
+    return dead;
+}
 
-    void Mario::matar(){
-        dead = true;
-    }
+/**
+ * @brief Mata Mario (estableix l'estat de mort).
+ */
+void Mario::matar(){
+    dead = true;
+}
 
+/**
+ * @brief Actualitza l'estat de Mario: moviment, física i col·lisions amb plataformes.
+ * @param window Finestra per llegir les tecles.
+ * @param platforms Vector de plataformes per comprovar col·lisions.
+ */
 void Mario::update(pro2::Window& window, const vector<Platform>& platforms) {
     last_pos_ = pos_;
+
+    // Salt si es prem la barra espaiadora
     if (window.is_key_down(Keys::Space)) {
         jump();
     }
 
+    // Moviment horitzontal segons les tecles
     speed_.x = 0; 
     if (window.is_key_down(Keys::Left)) {
         speed_.x = -3;
@@ -200,26 +230,30 @@ void Mario::update(pro2::Window& window, const vector<Platform>& platforms) {
         looking_left_ = speed_.x < 0;
     }
     
+    // Aplica la física (gravetat, acceleració)
     apply_physics_();
 
     set_grounded(false);
 
+    // Comprova col·lisions amb totes les plataformes
     for (const Platform& platform : platforms) {
+        // Si Mario ha caigut sobre una plataforma, el posa a terra
         if (platform.has_crossed_floor_downwards(last_pos_, pos_)) {
             set_grounded(true);
             set_y(platform.top());
         }
 
+        // Comprova col·lisions laterals amb la plataforma
         pro2::Rect r = platform.get_rect();
         if (pos_.y >= r.top && pos_.y <= r.bottom) {
             if (pos_.x > r.left && last_pos_.x <= r.left) {
-                // Choca por la izquierda
+                // Choca per l'esquerra
                 pos_.x = r.left - 1;
             } else if (pos_.x < r.right && last_pos_.x >= r.right) {
-                // Choca por la derecha
+                // Choca per la dreta
                 pos_.x = r.right + 1;
             }
         }
-        
     }
 }
+

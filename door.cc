@@ -6,9 +6,9 @@ const int n = pro2::black;
 const int m = 0x8b5e20;
 const int a = 0xdfa420;
 const int v = 0xfcd53f;
-
 const int g = 0x3a3a3a;
 
+// Sprite de la porta tancada
 const std::vector<std::vector<int>> Door::door_sprite_ = {
     {_, _, _, _, _, n, n, n, n, n, n, _, _, _, _, _},
     {_, _, _, n, n, a, a, m, m, a, a, n, n, _, _, _},
@@ -45,8 +45,9 @@ const std::vector<std::vector<int>> Door::door_sprite_ = {
     {n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n},
 };
 
+// Sprite de la porta oberta
 const std::vector<std::vector<int>> Door::door_sprite_open_ = {
-   {_, _, _, _, _, n, n, n, n, n, n, _, _, _, _, _},
+    {_, _, _, _, _, n, n, n, n, n, n, _, _, _, _, _},
     {_, _, _, n, n, g, g, g, g, g, g, n, n, _, _, _},
     {_, _, n, g, g, g, g, g, g, g, g, g, g, n, _, _},
     {_, n, g, g, g, g, g, g, g, g, g, g, g, g, n, _},
@@ -81,8 +82,39 @@ const std::vector<std::vector<int>> Door::door_sprite_open_ = {
     {n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n}
 };
 
+// Constructor
+Door::Door(pro2::Pt pos)
+    : pos_(pos), abierta_(false) {}
+
+// obre la porta
+void Door::abrir() {
+    abierta_ = true;
+}
+
+// tanca la porta
+void Door::cerrar() {
+    abierta_ = false;
+}
+
+// indica si la porta està oberta
+bool Door::is_abierta() const {
+    return abierta_;
+}
+
+// retorna la posició de la porta
+pro2::Pt Door::get_pos() const {
+    return pos_;
+}
+
+// retorna el rectangle que ocupa la porta (per a col·lisions)
+pro2::Rect Door::get_rect() const {
+    // ajusta els valors segons el sprite de la porta
+    return {pos_.x - 3, pos_.y - 30, pos_.x + 13, pos_.y + 1};
+}
+
+// dibuixa la porta a la finestra
 void Door::paint(pro2::Window& window) const {
-    pro2::Pt top_left = {pos_.x - 3, pos_.y - 30}; // Ajusta según el sprite
+    pro2::Pt top_left = {pos_.x - 3, pos_.y - 30};
     if (abierta_) {
         paint_sprite(window, top_left, door_sprite_open_, false);
     } else {

@@ -4,28 +4,57 @@
 #include "window.hh"
 #include <vector>
 
+/**
+ * @class Door
+ * @brief Representa una porta al joc, que pot estar oberta o tancada.
+ */
 class Door {
 private:
-    pro2::Pt pos_;
-    bool abierta_ = false;
-    static const std::vector<std::vector<int>> door_sprite_;
-    static const std::vector<std::vector<int>> door_sprite_open_;
+    pro2::Pt pos_; ///< Posició de la porta.
+    bool abierta_ = false; ///< Indica si la porta està oberta.
+    static const std::vector<std::vector<int>> door_sprite_; ///< Sprite de la porta tancada.
+    static const std::vector<std::vector<int>> door_sprite_open_; ///< Sprite de la porta oberta.
 
 public:
-    Door(pro2::Pt pos) : pos_(pos) {}
+    /**
+     * @brief Constructor de la classe Door.
+     * @param pos Posició inicial de la porta.
+     */
+    Door(pro2::Pt pos);
 
-    void abrir() { abierta_ = true; }
-    void cerrar() { abierta_ = false; }
-    bool is_abierta() const { return abierta_; }
-    pro2::Pt get_pos() const { return pos_; }
+    /**
+     * @brief Obre la porta.
+     */
+    void abrir();
 
-    pro2::Rect get_rect() const {
-        // Ajusta el tamaño según el sprite
-        return {pos_.x - 10, pos_.y - 30, pos_.x + 10, pos_.y + 1};
-    }
+    /**
+     * @brief Tanca la porta.
+     */
+    void cerrar();
 
+    /**
+     * @brief Indica si la porta està oberta.
+     * @return true si la porta està oberta, false altrament.
+     */
+    bool is_abierta() const;
+
+    /**
+     * @brief Retorna la posició de la porta.
+     * @return Posició actual de la porta.
+     */
+    pro2::Pt get_pos() const;
+
+    /**
+     * @brief Retorna el rectangle que ocupa la porta (per col·lisions).
+     * @return Rectangle de la porta.
+     */
+    pro2::Rect get_rect() const;
+
+    /**
+     * @brief Dibuixa la porta a la finestra.
+     * @param window Referència a la finestra on es dibuixa.
+     */
     void paint(pro2::Window& window) const;
-
 };
 
 #endif

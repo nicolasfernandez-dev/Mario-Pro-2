@@ -37,31 +37,31 @@ const vector<vector<int>> Goomba::goomba_sprite_ = {                /*he fet un 
     {n, n, n, n, n, n, n, _, _, _, n, n, n, n, n, n},
 };
 
-void Goomba::paint(pro2::Window& window) const {                    // pinta el goomba a la finestra
+void Goomba::paint(pro2::Window& window) const {
     if(eliminat) return;
     const Pt top_left = {pos_.x - 6, pos_.y - 15};
     paint_sprite(window, top_left, goomba_sprite_, looking_left_);
 }
 
-bool Goomba::is_eliminat() const {               // retorna si el goomba ha estat eliminat (funció futura)
+bool Goomba::is_eliminat() const {
     return eliminat;
 }
-void Goomba::eliminar() {           // funció que elimina el goomba (funció futura)
+void Goomba::eliminar() {
     eliminat = true;
 }
 
-void Goomba::update_animation(const pro2::Window& window, const std::vector<Platform>& platforms) {     // funció que actualitza l'animació del goomba
+void Goomba::update_animation(const pro2::Window& window, const std::vector<Platform>& platforms) {
     if (eliminat) {
         return;
     }
     move(platforms);
 }
-void Goomba::move(const std::vector<Platform>& platforms) {       // funció que mou el goomba
+void Goomba::move(const std::vector<Platform>& platforms) {
     if (eliminat) {            
         return;
     }
     int velocidad;                                  
-    if (looking_left_) {              // si el goomba mira a l'esquerra, la velocitat es negativa
+    if (looking_left_) {
         velocidad = -speed_;
     } else {
         velocidad = speed_;
@@ -70,11 +70,11 @@ void Goomba::move(const std::vector<Platform>& platforms) {       // funció que
     pro2::Pt next_pos = pos_;
     next_pos.x = pos_.x + velocidad;
 
-    if (next_pos.x < extrem_esquer_) {      // si el goomba es mou a l'esquerra i arriba al extrem esquerre, canvia de direcció
+    if (next_pos.x < extrem_esquer_) {
         next_pos.x = extrem_esquer_;
         looking_left_ = false;
     } else {
-        if (next_pos.x > extrem_dret_) {    // si el goomba es mou a la dreta i arriba al extrem dret, canvia de direcció
+        if (next_pos.x > extrem_dret_) {
             next_pos.x = extrem_dret_;
             looking_left_ = true;
         }
